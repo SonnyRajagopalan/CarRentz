@@ -1,7 +1,15 @@
-package com.sonny.carrentz.dto;
+package com.sonny.carrentz.model;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 
-public class CustomerDto {
-    private String customerID;
+@Entity
+public class Customer {
+    @Id
+    @GeneratedValue (strategy = jakarta.persistence.GenerationType.IDENTITY)
+    @Column(name = "customerID", unique = true, nullable = false)
+    private Long customerID; // This is the primary key, auto-generated
     private String firstname;
     private String lastName;
     private String driverID; // This could be a reference to the license or driver ID
@@ -9,24 +17,11 @@ public class CustomerDto {
     private String email;
     private String address;
 
-    public CustomerDto() {
-    }
-
-    public CustomerDto(String customerID, String firstname, String lastName, String driverID, String phoneNumber, String email, String address) {
-        this.customerID = customerID;
-        this.firstname = firstname;
-        this.lastName = lastName;
-        this.driverID = driverID;
-        this.phoneNumber = phoneNumber;
-        this.email = email;
-        this.address = address;
-    }
-
-    public String getCustomerID() {
+    public Long getCustomerID() {
         return customerID;
     }
 
-    public void setCustomerID(String customerID) {
+    public void setCustomerID(Long customerID) {
         this.customerID = customerID;
     }
 
