@@ -1,0 +1,53 @@
+July 1, 2025.
+
+Hello Narendra,
+
+Thank you for the opportunity to interview with State Street. Attached, please 
+find a zip file with two files--one a markdown (Design.md) showing my very initial 
+thoughts about the design of this solution (it is evolving by the minute), and 
+another a python file showing the simulation. You can run the simulation with 
+python3 on your desktop (requires terminal access) like so:
+
+	$ python3 ./simulateCarRentRentals.py 10 10
+	Simulating 10 customers for 10 days
+	Customer 9189152 is renting Sedan for a duration of 4 days
+	Customer 7580732 is renting SUV for a duration of 7 days
+	Customer 5667387 is renting Sedan for a duration of 1 days
+	Ran out of Sedans for 2134724, helping next customer...
+	Customer 285458 is renting SUV for a duration of 6 days
+	Ran out of Sedans for 3000746, helping next customer...
+	Customer 3911181 is renting SUV for a duration of 12 days
+	Customer 8047414 is renting Van for a duration of 12 days
+	Customer 8336240 is renting SUV for a duration of 14 days
+	Ran out of Vans for 5521319, helping next customer...
+	Customer 5667387 has returned the Sedan. Total Sedans: 1, SUVs: 1, Vans: 0
+	Customer 9189152 has returned the Sedan. Total Sedans: 2, SUVs: 1, Vans: 0
+	Customer 285458 has returned the SUV. Total Sedans: 2, SUVs: 2, Vans: 0
+	Customer 7580732 has returned the SUV. Total Sedans: 2, SUVs: 3, Vans: 0
+	Customer 3911181 has returned the SUV. Total Sedans: 2, SUVs: 4, Vans: 0
+	Customer 8047414 has returned the Van. Total Sedans: 2, SUVs: 4, Vans: 1
+	Customer 8336240 has returned the SUV. Total Sedans: 2, SUVs: 5, Vans: 1
+
+Please note that I am not calling the python file an OOP approach (more on that in 
+the design document). I am going to start work on the OOP approach shortly, but 
+wanted to send you this initial cut by today.
+
+That said, I have to confess calling the requested prep work a simulation has me a 
+little torn on a number of accounts. For starters, a simulation does not need to 
+be scalable in the same manner as production grade systems, and the design 
+criteria and maintainability criteria both differ (I am delighted to talk about 
+this, having done a lot of simulations and production grade code in extremely 
+demanding telco systems in my past life). However, this work will help me on a 
+side project I have been working on (simulating the stock market--I had spoken to 
+Dimitry about it) so I am doubly happy to start work on it (I am currently working 
+on setting up a k3s system on my local Raspberry Pi network).
+
+Last: this work has not relied on any Generative AI resources online except 
+CoPilot on my Visual Studio Code (I am learning how to use it). I _could_ use 
+ChatGPT or Claude, but I'd rather have the fun :-).
+
+Anyway, I am working on a more detailed simulation/OOP design before we meet. In 
+the interim, please reach out if you have any questions.
+
+Cheers,
+Sonny.
