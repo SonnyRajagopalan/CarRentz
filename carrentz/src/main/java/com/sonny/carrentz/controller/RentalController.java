@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sonny.carrentz.model.Rental;
 import com.sonny.carrentz.model.Inventory;
 import com.sonny.carrentz.repository.RentalRepository;
-import jakarta.persistence.criteria.CriteriaBuilder.In;
 import com.sonny.carrentz.repository.InventoryRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +31,7 @@ public class RentalController {
         this.rentalRepository = rentalRepository;
         this.inventoryRepository = inventoryRepository;
     }
-    
+
     @GetMapping("/availableByCarType/{carType}")
     public ResponseEntity<Rental> getAvailableRentalByCarType(@PathVariable String carType) {
         Rental rental = new Rental();
@@ -65,6 +64,10 @@ public class RentalController {
 
     @PostMapping
     public ResponseEntity<Rental> createRental(@RequestBody Rental rental) {
+        Inventory car = inventoryRepository.findByCarID(rental.getCarID());
+        System.out.println("Creating rental: " + rental);
+        
+        //rental.setRentalID(null);  
         rental.setCustomerID(rental.getCustomerID()); // One of a few required fields
         rental.setExpectedCost(0.0f); // Default expected cost
         rental.setactualCharges(0.0f); // Default actual cost
@@ -74,7 +77,12 @@ public class RentalController {
         // Set rental and return dates
         rental.setRentalDate(LocalDateTime.now());
         rental.setReturnDate(LocalDateTime.now().plusDays(rental.getDuration()));
-        Rental savedRental = rentalRepository.save(rental);
+        Rental savedRental = rentalRepository.save (rental);
+
+        // important: Update the car's availability status
+        car.setAvailable(false); // Mark the car as not available
+        inventoryRepository.save(car); // Save the updated car status
+        System.out.println("Rental created successfully: " + savedRental);
         return ResponseEntity.ok(savedRental);
     }
 }

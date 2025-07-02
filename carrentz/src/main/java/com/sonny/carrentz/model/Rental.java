@@ -3,7 +3,9 @@ package com.sonny.carrentz.model;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 // import java.sql.Connection;
 // import java.sql.PreparedStatement;
@@ -11,9 +13,11 @@ import java.time.LocalDateTime;
 // import java.sql.ResultSet;
 
 @Entity
+@Table(name = "rentals") // Assuming the table name is 'rentals'
 public class Rental {
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+    //@GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "rentalID", unique = true, nullable = false)
     private Long rentalID;
     @Column(name = "carID", nullable = false)

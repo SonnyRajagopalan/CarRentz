@@ -3,8 +3,10 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "inventory") // Assuming the table name is 'inventory'
 public class Inventory {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
