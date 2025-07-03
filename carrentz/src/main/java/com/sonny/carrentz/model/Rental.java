@@ -13,10 +13,9 @@ import java.time.LocalDateTime;
 // import java.sql.ResultSet;
 
 @Entity
-@Table(name = "rentals") // Assuming the table name is 'rentals'
+@Table(name = "Rentals") // Assuming the table name is 'rentals'
 public class Rental {
     @Id
-    //@GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "rentalID", unique = true, nullable = false)
     private Long rentalID;
@@ -32,8 +31,8 @@ public class Rental {
     private LocalDateTime returnDate;
     @Column(name = "customerID", nullable = false)
     private String customerID; // Assuming customerID is a foreign key reference to Customer
-    @Column(name = "expectedCost", nullable = false)
-    private float  expectedCost;
+    @Column(name = "expectedCharges", nullable = false)
+    private float  expectedCharges;
     @Column(name = "actualCharges", nullable = false)
     private float  actualCharges;
     
@@ -41,14 +40,14 @@ public class Rental {
     }
 
     public Rental(Long rentalID, String carType, int duration, LocalDateTime rentalDate, LocalDateTime returnDate, 
-                        String customerID, float expectedCost, float actualCharges) {
+                        String customerID, float expectedCharges, float actualCharges) {
         this.rentalID = rentalID;
         this.carType = carType;
         this.duration = duration;
         this.rentalDate = rentalDate;
         this.returnDate = returnDate;
         this.customerID = customerID;
-        this.expectedCost = expectedCost;
+        this.expectedCharges = expectedCharges;
         this.actualCharges = actualCharges;
     }
     public String getCarType() {
@@ -107,19 +106,19 @@ public class Rental {
         this.carID = carID;
     }
 
-    public float getExpectedCost() {
-        return expectedCost;
+    public float getExpectedCharges() {
+        return expectedCharges;
     }
 
-    public void setExpectedCost(float expectedCost) {
-        this.expectedCost = expectedCost;
+    public void setExpectedCharges(float expectedCharges) {
+        this.expectedCharges = expectedCharges;
     }
 
-    public float getactualCharges() {
+    public float getActualCharges() {
         return actualCharges;
     }
 
-    public void setactualCharges(float actualCharges) {
+    public void setActualCharges(float actualCharges) {
         this.actualCharges = actualCharges;
     }
 }

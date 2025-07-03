@@ -51,8 +51,8 @@ public class RentalController {
         rental.setRentalDate(LocalDateTime.now());
         rental.setReturnDate(LocalDateTime.now().plusDays(rental.getDuration()));
         rental.setCustomerID("defaultCustomerID"); // Placeholder for customer ID
-        rental.setExpectedCost(0.0f); // Default expected cost
-        rental.setactualCharges(0.0f); // Default actual cost
+        rental.setExpectedCharges(0.0f); // Default expected charges
+        rental.setActualCharges(0.0f); // Default actual charges
         System.out.println("Rental created: " + rental);
         return ResponseEntity.ok(rental);
     }
@@ -70,8 +70,8 @@ public class RentalController {
         
         //rental.setRentalID(null);  
         rental.setCustomerID(rental.getCustomerID()); // One of a few required fields
-        rental.setExpectedCost(0.0f); // Default expected cost
-        rental.setactualCharges(0.0f); // Default actual cost
+        rental.setExpectedCharges(0.0f); // Default expected charges
+        rental.setActualCharges(0.0f); // Default actual charges
         rental.setCarID(rental.getCarID()); // Assuming carID is set later
         rental.setCarType(rental.getCarType()); // Default car type
         rental.setDuration(rental.getDuration()); // Default duration

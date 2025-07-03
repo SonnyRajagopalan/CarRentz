@@ -6,19 +6,27 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "inventory") // Assuming the table name is 'inventory'
+@Table(name = "Inventory") // Assuming the table name is 'inventory'
 public class Inventory {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     @Column(name = "carID", unique = true, nullable = false)
     private Long carID; 
+    @Column(name = "carType", nullable = false)
     private String carType;
+    @Column(name = "model", nullable = false)
     private String model;
+    @Column(name = "make", nullable = false)
     private String make;
+    @Column(name = "milesDriven", nullable = false)
     private float milesDriven;
+    @Column(name = "year", nullable = false)
     private int year;
+    @Column(name = "color", nullable = false)
     private String color;
+    @Column(name = "pricePerDay", nullable = false)
     private float pricePerDay;
+    @Column(name = "available", nullable = false)
     private boolean available;
 
     public Inventory() {
