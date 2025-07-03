@@ -1,9 +1,44 @@
 import requests
 import json
 import asyncio
+import random
 
+inventoryUrl = "http://localhost:8080/inventory"
 rentalsUrl = "http://localhost:8080/rentals"
 availableCarsUrl = "http://localhost:8080/rentals/availableByCarType/"
+
+def populateInventoryWithOneTypeOfCar (carType, number):
+    url = inventoryUrl
+
+    for i in range(number):
+        color = random.choice (['Parrot Red', 'Blue Agate', 'Black', 'White', 'Burgundy', 'Steelblue', 'Green'])
+        make = random.choice (['Toyota', 'Honda', 'Ford', 'Chevrolet', 'Nissan'])
+        model = random.choice (['RAV4', 'CR-V', 'Escape', 'Equinox', 'Rogue'])
+        milesDriven = random.randint(0, 10000)
+        pricePerDay = random.randint(25, 50)
+        year = random.randint(2022, 2025)
+        data = {
+            "available": True,
+            "carType": carType,
+            "color": color,
+            "make": make,
+            "model": model,
+            "milesDriven": milesDriven,
+            "pricePerDay": pricePerDay,
+            "year": year
+        }
+
+        response = requests.post(url, json=data)
+        if response is not None:
+            print("Inventory initialized successfully:", response)
+        else:
+            print("Failed to initialize inventory")
+
+def initializeInventory (numberOfSUVs, numberOfSedans, numberOfVans):
+    
+    populateInventoryWithOneTypeOfCar("SUV", numberOfSUVs)
+    populateInventoryWithOneTypeOfCar("Sedan", numberOfSedans)
+    populateInventoryWithOneTypeOfCar("Van", numberOfVans)
 
 def makeRequest (url, method, data=None):
     headers = { "Content-Type": "application/json" }
@@ -56,4 +91,12 @@ def returnARental (rentalID):
     return None
 
     
-
+def deleteInventory ():
+    url = inventoryUrl
+    response = requests.delete(url)
+    if response.status_code == 200:
+        print("Inventory deleted successfully")
+        return response
+    else:
+        print(f"Failed to delete inventory: {response.status_code} - {response.text}")
+    return None

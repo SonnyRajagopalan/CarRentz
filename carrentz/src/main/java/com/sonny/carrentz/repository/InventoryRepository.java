@@ -6,9 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.NativeQuery;
 
 public interface InventoryRepository extends JpaRepository<Inventory, Long>{
-    @NativeQuery(value="SELECT * FROM inventory WHERE carType = ?1 AND available = true")
+    @NativeQuery(value="SELECT * FROM Inventory WHERE carType = ?1 AND available = true")
     List<Inventory> findByCarType(String carType);
 
-    @NativeQuery(value="SELECT * FROM inventory WHERE carID = ?1 LIMIT 1")
+    @NativeQuery(value="SELECT * FROM Inventory WHERE carID = ?1 LIMIT 1")
     Inventory findByCarID(Long cID);
 }

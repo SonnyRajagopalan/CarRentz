@@ -5,12 +5,18 @@ import CarRentzRestAPI as CarRentzRestAPI
 
 numberOfCustomers      = int (sys.argv[1])
 numberOfDaysToSimulate = int (sys.argv[2])
+numberOfCars           = int (sys.argv[3]) # Total number of cars in the inventory
+numberOfSUVs           = random.randrange(1, numberOfCars // 3) # Number of SUVs in the inventory
+numberOfSedans         = random.randrange(1, numberOfCars // 3) # Number of Sedans in the inventory
+numberOfVans           = numberOfCars - (numberOfSUVs + numberOfSedans) # Number of Vans in the inventory
+# Initialize the CarRentzRestAPI with the number of cars in the inventory
+CarRentzRestAPI.initializeInventory(numberOfSUVs, numberOfSedans, numberOfVans)
 # Obviously, this is a simulation, so we are not going to be using real data
 # And the following values are just for simulation purposes, and can be changed
 # either by command line arguments or by changing the code directly
 minDaysForRental    = 1
 maxDaysForRental    = 25
-breakTime = random.randint(1, 50) # After processing this many customers, take a break
+breakTime = random.randint(1, numberOfCustomers//3) # After processing this many customers, take a break
 
 print (f"Simulating {numberOfCustomers} customers for {numberOfDaysToSimulate} days")
 
@@ -54,6 +60,9 @@ async def main():
             await asyncio.sleep(random.randint (1, 50))
 
     await asyncio.gather(*tasks) # Wait for all rental return tasks to complete
+    # After all customers have been processed, delete the inventory
+    mainBodyThread = asyncio.get_running_loop()
+    await mainBodyThread.run_in_executor(None, CarRentzRestAPI.deleteInventory)
 
 if __name__ == "__main__":
     asyncio.run(main())
