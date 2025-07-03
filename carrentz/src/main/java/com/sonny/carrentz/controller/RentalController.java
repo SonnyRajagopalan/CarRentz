@@ -11,6 +11,7 @@ import com.sonny.carrentz.model.Inventory;
 import com.sonny.carrentz.repository.RentalRepository;
 import com.sonny.carrentz.repository.InventoryRepository;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 // import java.sql.Connection;
@@ -84,5 +85,26 @@ public class RentalController {
         inventoryRepository.save(car); // Save the updated car status
         System.out.println("Rental created successfully: " + savedRental);
         return ResponseEntity.ok(savedRental);
+    }
+
+    @DeleteMapping("/{rentalID}")
+    public ResponseEntity<Void> returnRental(@PathVariable Long rentalID) {
+        System.out.println("Returning rental with ID: " + rentalID);
+        Rental rental = rentalRepository.findByRentalID(rentalID);
+        if (rental == null) {
+            System.out.println("Rental not found with ID: " + rentalID);
+            return ResponseEntity.notFound().build();
+        }
+        
+        // Update the car's availability status
+        Inventory car = inventoryRepository.findByCarID(rental.getCarID());
+        if (car != null) {
+            car.setAvailable(true); // Mark the car as available
+            inventoryRepository.save(car); // Save the updated car status
+        }
+        
+        rentalRepository.delete(rental); // Delete the rental record
+        System.out.println("Rental returned successfully: " + rentalID);
+        return ResponseEntity.noContent().build();
     }
 }
