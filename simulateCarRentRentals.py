@@ -1,9 +1,7 @@
 import asyncio
 import random
 import sys
-import requests
-import concurrent.futures
-import CarRentzRestAPI as carRentzAPI
+import CarRentzRestAPI as CarRentzRestAPI
 
 numberOfCustomers      = int (sys.argv[1])
 numberOfDaysToSimulate = int (sys.argv[2])
@@ -11,59 +9,42 @@ numberOfDaysToSimulate = int (sys.argv[2])
 # And the following values are just for simulation purposes, and can be changed
 # either by command line arguments or by changing the code directly
 minDaysForRental    = 1
-maxDaysForRental    = 15
-# This is now the SQL db "CarRentz"
-# totalSuvs = 5
-# totalSedans = 2
-# totalVans = 1
+maxDaysForRental    = 25
 breakTime = random.randint(1, 50) # After processing this many customers, take a break
 
 print (f"Simulating {numberOfCustomers} customers for {numberOfDaysToSimulate} days")
 
-async def rentalReturn (rID):
-    loop = asyncio.get_event_loop()
+async def rentalReturn (rID, dur):
     await asyncio.sleep(dur)
-    # Simulate the time taken to process the return
-    #print(f"\tCustomer {cID} return processing....")
-    await loop.run_in_executor(None, carRentzAPI.returnARental(rID))
-    print(f"Customer {cID} has returned the {cT}. Total Sedans: {totalSedans}, SUVs: {totalSuvs}, Vans: {totalVans}")
+    response = CarRentzRestAPI.returnARental(rID)    
+    print (f"Rental {rID} returned after {dur} days. Response: {response}")
 
 async def main():
     tasks = []
-    
     for eventEpoch in range(numberOfDaysToSimulate):
-        global breakTime
-        loop = asyncio.get_event_loop()
-        # A customer walks in for a rental request
+        # A customer walks in for a rental request highly opinionated on the car type they
+        # want, and the duration of the rental
+        global breakTime       
         breakTime -= 1 # Decrement the break time
+        thisAsyncIterationOfLoop = asyncio.get_running_loop()
 
         customerID = random.randint(1, numberOfCustomers)
-        global totalSuvs, totalSedans, totalVans
         carType = random.choice(['Sedan', 'SUV', 'Van'])
-        try:
-
-            car = await loop.run_in_executor(None, carRentzAPI.findAnAvailableCar(carType))
-            if car is None:
-                print(f"No available cars of type {carType} for customer {customerID}, helping next customer...")
-                continue
-        except Exception as e:
-            print(f"An error occurred while finding an available car: {e}")
-            continue
-        carID = car['carID']    
-        print (f"Customer {customerID} has requested a {carType} with ID {carID}")
         rentalDuration = random.randint(minDaysForRental, maxDaysForRental)
-        try:
-            rental = await loop.run_in_executor(None, carRentzAPI.rentACar(carType, carID, rentalDuration, customerID))
-            if rental is None:
-                print(f"Failed to rent a car for customer {customerID}, helping next customer...")
-                continue
-        except Exception as e:
-            print(f"An error occurred while renting a car: {e}")
+
+        # Are cars available of the requested type?
+        availableCar = await thisAsyncIterationOfLoop.run_in_executor(None, CarRentzRestAPI.findAnAvailableCar, carType)
+        if availableCar is None:
+            print(f"No available cars of type {carType} for customer {customerID}.")
             continue
-
-        print (rental)
-        task = asyncio.create_task(rentalReturn(rental['rentalID']))
-
+        # Excellent--car available--now rent it
+        carID = availableCar['carID']
+        response = await thisAsyncIterationOfLoop.run_in_executor(None, CarRentzRestAPI.rentACar, carType, carID, rentalDuration, customerID)
+        if response is None:
+            print(f"Failed to rent car of type {carType} for customer {customerID}.")
+            continue
+        # Rental successful, now the customer has the car for the specified duration
+        task = asyncio.create_task(rentalReturn(response['rentalID'], rentalDuration))
         tasks.append(task)
         print(f"Customer {customerID} is renting {carType} for a duration of {rentalDuration} days")
 
@@ -72,7 +53,7 @@ async def main():
             breakTime = random.randint(1, 50) # Reset the break time
             await asyncio.sleep(random.randint (1, 50))
 
-    await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks) # Wait for all rental return tasks to complete
 
 if __name__ == "__main__":
     asyncio.run(main())

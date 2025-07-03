@@ -38,8 +38,11 @@ def rentACar (carType, carID, duration, customerID):
     print (response.status_code)
     if response.status_code == 200:
         print("Rental created successfully:", response)
+        return response.json()
     else:
         print(f"Failed to create rental {data}")
+
+    
 
 def returnARental (rentalID):
     url = rentalsUrl + "/" + str(rentalID)
@@ -47,9 +50,10 @@ def returnARental (rentalID):
     response = requests.delete(url)
     if response is not None:
         print("Rental returned successfully:", response)
+        return response
     else:
         print("Failed to return rental")
-
+    return None
 
     
 
