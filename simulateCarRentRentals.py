@@ -56,7 +56,7 @@ async def main():
 
         if breakTime == 0: 
             print(f"---Taking a short break...")
-            breakTime = random.randint(1, 50) # Reset the break time
+            breakTime = random.randint(50, 150) # Reset the break time
             await asyncio.sleep(random.randint (1, 50))
 
     await asyncio.gather(*tasks) # Wait for all rental return tasks to complete

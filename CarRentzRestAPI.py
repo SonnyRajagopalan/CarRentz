@@ -2,6 +2,7 @@ import requests
 import json
 import asyncio
 import random
+import time
 
 inventoryUrl = "http://localhost:8080/inventory"
 rentalsUrl = "http://localhost:8080/rentals"
@@ -52,8 +53,9 @@ def makeRequest (url, method, data=None):
         print(f"Error: {response.status_code} - {response.text}")
         return None
 
-def findAnAvailableCar (carType):
+def findAnAvailableCar (carType, delay=0):
     url = availableCarsUrl + carType
+    time.sleep (delay)
     response = makeRequest (url, "GET")
     if response is not None and len(response) > 0:
         return response  # Return the first available car
@@ -61,8 +63,9 @@ def findAnAvailableCar (carType):
         print("No cars available of type:", carType)
         return None
 
-def rentACar (carType, carID, duration, customerID):
+def rentACar (carType, carID, duration, customerID, delay=0):
     url = rentalsUrl
+    time.sleep (delay)
     data = {
         "carType": carType,
         "carID": carID,
@@ -79,8 +82,9 @@ def rentACar (carType, carID, duration, customerID):
 
     
 
-def returnARental (rentalID):
+def returnARental (rentalID, delay=0):
     url = rentalsUrl + "/" + str(rentalID)
+    time.sleep (delay)
     print ("Returning rental with ID:", rentalID, "using URL:", url)
     response = requests.delete(url)
     if response is not None:
