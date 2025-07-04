@@ -67,8 +67,13 @@ public class RentalController {
     public ResponseEntity<Rental> createRental(@RequestBody Rental rental) {
         Inventory car = inventoryRepository.findByCarID(rental.getCarID());
         System.out.println("Creating rental: " + rental);
+        // Days from simulation start is being packed in the expectedCharges
+        // This is a hack
         
-        //rental.setRentalID(null);  
+        //rental.setRentalID(null);
+        // Hack: receiving days from simulation start into expectedCharges
+        int daysAfterSimStart = (int) rental.getExpectedCharges ();
+        
         rental.setCustomerID(rental.getCustomerID()); // One of a few required fields
         rental.setExpectedCharges(0.0f); // Default expected charges
         rental.setActualCharges(0.0f); // Default actual charges
@@ -76,8 +81,9 @@ public class RentalController {
         rental.setCarType(rental.getCarType()); // Default car type
         rental.setDuration(rental.getDuration()); // Default duration
         // Set rental and return dates
-        rental.setRentalDate(LocalDateTime.now());
-        rental.setReturnDate(LocalDateTime.now().plusDays(rental.getDuration()));
+        rental.setRentalDate(LocalDateTime.now().plusDays (daysAfterSimStart));
+        rental.setReturnDate(LocalDateTime.now().plusDays (daysAfterSimStart + rental.getDuration()));
+        System.out.println ("Start = " + rental.getRentalDate () + " and return date = " + rental.getReturnDate ());
         Rental savedRental = rentalRepository.save (rental);
 
         // important: Update the car's availability status

@@ -50,7 +50,7 @@ def makeRequest (url, method, data=None):
     if response.status_code == 200:
         return response.json()
     else:
-        print(f"Error: {response.status_code} - {response.text}")
+        # print(f"Error: {response.status_code} GETting URL {url}")
         return None
 
 def findAnAvailableCar (carType, delay=0):
@@ -63,19 +63,19 @@ def findAnAvailableCar (carType, delay=0):
         print("No cars available of type:", carType)
         return None
 
-def rentACar (carType, carID, duration, customerID, delay=0):
+def rentACar (day, carType, carID, duration, customerID, delay=0):
     url = rentalsUrl
     time.sleep (delay)
     data = {
         "carType": carType,
         "carID": carID,
         "duration": duration,
+        "expectedCharges": day,
         "customerID": customerID
     }
     response = requests.post (url, json=data)
-    print (response.status_code)
     if response.status_code == 200:
-        print("Rental created successfully:", response)
+        # print("Rental created successfully:", response)
         return response.json()
     else:
         print(f"Failed to create rental {data}")
@@ -88,7 +88,7 @@ def returnARental (rentalID, delay=0):
     print ("Returning rental with ID:", rentalID, "using URL:", url)
     response = requests.delete(url)
     if response is not None:
-        print("Rental returned successfully:", response)
+        print("\tRental returned successfully:", response)
         return response
     else:
         print("Failed to return rental")

@@ -10,7 +10,7 @@ async def rentalReturn (rID, dur):
     response = CarRentzRestAPI.returnARental(rID)    
     print (f"Rental {rID} returned after {dur} days. Response: {response}")
 
-async def seeNCustomers (n, numberOfCustomers, minDaysForRental, maxDaysForRental):
+async def seeNCustomers (day, n, numberOfCustomers, minDaysForRental, maxDaysForRental):
     tasks = []
     for c in range (n):
 
@@ -27,33 +27,33 @@ async def seeNCustomers (n, numberOfCustomers, minDaysForRental, maxDaysForRenta
             continue
         # Excellent--car available--now rent it
         carID = availableCar['carID']
-        response = await thisAsyncIterationOfLoop.run_in_executor(None, CarRentzRestAPI.rentACar, carType, carID, rentalDuration, customerID, 0.007)
+        response = await thisAsyncIterationOfLoop.run_in_executor(None, CarRentzRestAPI.rentACar, day, carType, carID, rentalDuration, customerID, 0.007)
         if response is None:
             print(f"Failed to rent car of type {carType} for customer {customerID}.")
             continue
         # Rental successful, now the customer has the car for the specified duration
         task = asyncio.create_task(rentalReturn(response['rentalID'], rentalDuration))
         tasks.append(task)
-        print(f"Customer {customerID} is renting {carType} for a duration of {rentalDuration} days")
+        print(f"{day} Customer {customerID} is renting a/an {carType} for a duration of {rentalDuration} days")
 
     return tasks
 
 async def simulateCarRentz (numberOfDaysToSimulate, numberOfCustomers, minDaysForRental, maxDaysForRental):
 
     allRentalEvents = []
-    for d in range(numberOfDaysToSimulate):
+    for day in range(numberOfDaysToSimulate):
         # All of the following, before the sleep for 2/3 of a second should only take 1/3 second.
         # Morning
-        rentalEvents = await seeNCustomers (5, numberOfCustomers, minDaysForRental, maxDaysForRental)
+        rentalEvents = await seeNCustomers (day, 5, numberOfCustomers, minDaysForRental, maxDaysForRental)
         allRentalEvents += rentalEvents
         # Mid-morning
-        rentalEvents = await seeNCustomers (4, numberOfCustomers, minDaysForRental, maxDaysForRental)
+        rentalEvents = await seeNCustomers (day, 4, numberOfCustomers, minDaysForRental, maxDaysForRental)
         allRentalEvents += rentalEvents
         # Afternoon
-        rentalEvents = await seeNCustomers (6, numberOfCustomers, minDaysForRental, maxDaysForRental)
+        rentalEvents = await seeNCustomers (day, 6, numberOfCustomers, minDaysForRental, maxDaysForRental)
         allRentalEvents += rentalEvents
         # Late afternoon
-        rentalEvents = await seeNCustomers (4, numberOfCustomers, minDaysForRental, maxDaysForRental)
+        rentalEvents = await seeNCustomers (day, 4, numberOfCustomers, minDaysForRental, maxDaysForRental)
         allRentalEvents += rentalEvents
 
         await asyncio.sleep(0.67) # Only 8 hours of work a day
@@ -75,7 +75,6 @@ async def main ():
     await mainBodyThread.run_in_executor(None, CarRentzRestAPI.initializeInventory, numberOfSUVs, numberOfSedans, numberOfVans)
 
     allTasksFromSimulation = await simulateCarRentz (numberOfDaysToSimulate, numberOfCustomers, minDaysForRental, maxDaysForRental)
-    print ("Size of all tasks = ", len(allTasksFromSimulation))
     await asyncio.gather (*allTasksFromSimulation)
     await mainBodyThread.run_in_executor(None, CarRentzRestAPI.deleteInventory)
 
