@@ -72,7 +72,7 @@ public class RentalController {
         
         //rental.setRentalID(null);
         // Hack: receiving days from simulation start into expectedCharges
-        int daysAfterSimStart = (int) rental.getExpectedCharges ();
+        // int daysAfterSimStart = (int) rental.getExpectedCharges ();
         
         rental.setCustomerID(rental.getCustomerID()); // One of a few required fields
         rental.setExpectedCharges(0.0f); // Default expected charges
@@ -81,8 +81,8 @@ public class RentalController {
         rental.setCarType(rental.getCarType()); // Default car type
         rental.setDuration(rental.getDuration()); // Default duration
         // Set rental and return dates
-        rental.setRentalDate(LocalDateTime.now().plusDays (daysAfterSimStart));
-        rental.setReturnDate(LocalDateTime.now().plusDays (daysAfterSimStart + rental.getDuration()));
+        //rental.setRentalDate(LocalDateTime.now().plusDays (daysAfterSimStart));
+        //rental.setReturnDate(LocalDateTime.now().plusDays (daysAfterSimStart + rental.getDuration()));
         System.out.println ("Start = " + rental.getRentalDate () + " and return date = " + rental.getReturnDate ());
         Rental savedRental = rentalRepository.save (rental);
 
@@ -108,8 +108,8 @@ public class RentalController {
             car.setAvailable(true); // Mark the car as available
             inventoryRepository.save(car); // Save the updated car status
         }
-        
-        rentalRepository.delete(rental); // Delete the rental record
+        // Don't delete the rental record
+        //rentalRepository.delete(rental); // Delete the rental record
         System.out.println("Rental returned successfully: " + rentalID);
         return ResponseEntity.noContent().build();
     }

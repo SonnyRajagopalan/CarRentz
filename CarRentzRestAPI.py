@@ -3,6 +3,7 @@ import json
 import asyncio
 import random
 import time
+from datetime import datetime, timedelta
 
 inventoryUrl = "http://localhost:8080/inventory"
 rentalsUrl = "http://localhost:8080/rentals"
@@ -66,10 +67,14 @@ def findAnAvailableCar (carType, delay=0):
 def rentACar (day, carType, carID, duration, customerID, delay=0):
     url = rentalsUrl
     time.sleep (delay)
+    start = datetime.now() + timedelta (days=day)
+    end = start + timedelta (days=duration)
     data = {
         "carType": carType,
         "carID": carID,
         "duration": duration,
+        "rentalDate": start.isoformat(),
+        "returnDate": end.isoformat(),
         "expectedCharges": day,
         "customerID": customerID
     }
