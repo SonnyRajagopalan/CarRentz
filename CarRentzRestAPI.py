@@ -32,7 +32,8 @@ def populateInventoryWithOneTypeOfCar (carType, number):
 
         response = requests.post(url, json=data)
         if response is not None:
-            print("Inventory initialized successfully:", response)
+            # print("Inventory initialized successfully:", response)
+            continue
         else:
             print("Failed to initialize inventory")
 
@@ -54,14 +55,31 @@ def makeRequest (url, method, data=None):
         # print(f"Error: {response.status_code} GETting URL {url}")
         return None
 
-def findAnAvailableCar (carType, delay=0):
+def findAnAvailableCar (day, carType, duration, customerID, repID, delay=0):
     url = availableCarsUrl + carType
+
     time.sleep (delay)
     response = makeRequest (url, "GET")
     if response is not None and len(response) > 0:
         return response  # Return the first available car
     else:
-        print("No cars available of type:", carType)
+        # print("No cars available of type:", carType)
+        # Push to RentalsUnavailable
+        url = "http://localhost:8080/rentals/unavailable"
+        data = {
+            "carType": carType,
+            "duration": 0,  # No specific car ID since none is available
+            "rentalDate": (datetime.now()+timedelta(days=day)).isoformat(),
+            "customerID": 1,  # Assuming a fixed customer ID for simplicity
+            "repID": 1,  # Assuming a fixed representative ID for simplicity
+            "reason": "No cars available of this type"
+        }
+        response = requests.post(url, json=data)
+        if response.status_code == 200:
+            print("RentalUnavailable created successfully:", response)
+            return None
+        else:
+            print(f"Failed to create RentalUnavailable: {response.status_code} - {response.text}")
         return None
 
 def rentACar (day, carType, carID, duration, customerID, delay=0):
@@ -72,6 +90,8 @@ def rentACar (day, carType, carID, duration, customerID, delay=0):
     data = {
         "carType": carType,
         "carID": carID,
+        "repID": 1, # Assuming a fixed representative ID for simplicity
+        "branchID": 1, # Assuming a fixed branch ID for simplicity
         "duration": duration,
         "rentalDate": start.isoformat(),
         "returnDate": end.isoformat(),
@@ -90,10 +110,10 @@ def rentACar (day, carType, carID, duration, customerID, delay=0):
 def returnARental (rentalID, delay=0):
     url = rentalsUrl + "/" + str(rentalID)
     time.sleep (delay)
-    print ("Returning rental with ID:", rentalID, "using URL:", url)
+    # print ("Returning rental with ID:", rentalID, "using URL:", url)
     response = requests.delete(url)
     if response is not None:
-        print("\tRental returned successfully:", response)
+        # print("\tRental returned successfully:", response)
         return response
     else:
         print("Failed to return rental")
@@ -104,7 +124,7 @@ def deleteInventory ():
     url = inventoryUrl
     response = requests.delete(url)
     if response.status_code == 200:
-        print("Inventory deleted successfully")
+        # print("Inventory deleted successfully")
         return response
     else:
         print(f"Failed to delete inventory: {response.status_code} - {response.text}")

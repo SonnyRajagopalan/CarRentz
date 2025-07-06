@@ -14,6 +14,8 @@ public class Inventory {
     private Long carID; 
     @Column(name = "carType", nullable = false)
     private String carType;
+    @Column(name = "currentBranchID", nullable = false)
+    private Long currentBranchID;
     @Column(name = "model", nullable = false)
     private String model;
     @Column(name = "make", nullable = false)
@@ -32,11 +34,12 @@ public class Inventory {
     public Inventory() {
     }
 
-    public Inventory(Long carID, String carType, String model, 
+    public Inventory(Long carID, String carType, Long currentBranchID, String model, 
             String make, float milesDriven, int year, String color, 
             float pricePerDay, boolean available) {
         this.carID = carID;
         this.carType = carType;
+        this.currentBranchID = currentBranchID;
         this.model = model;
         this.make = make;
         this.milesDriven = 0.0f; // Default value for miles driven
@@ -54,6 +57,15 @@ public class Inventory {
     public void setCarID(Long carID) {
         this.carID = carID;
     }
+
+    public Long getCurrentBranchID () {
+        return currentBranchID;
+    }
+
+    public void setCurrentBranchID (Long currentBranchID) {
+        this.currentBranchID = currentBranchID;
+    }
+
     public float getMilesDriven() {
         return milesDriven;
     }
