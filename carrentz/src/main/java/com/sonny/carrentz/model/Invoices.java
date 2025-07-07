@@ -31,7 +31,7 @@ public class Invoices {
     public Invoices() {}
 
     public Invoices(Long rentalID, Long customerID, Long rentalBranchID, Long returnBranchID, Long repID,
-            Float totalCharges, String paymentStatus) {
+            float totalCharges, String paymentStatus) {
         this.rentalID = rentalID;
         this.customerID = customerID;
         this.rentalBranchID = rentalBranchID;

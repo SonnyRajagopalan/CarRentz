@@ -1,4 +1,6 @@
 package com.sonny.carrentz.model;
+//import org.hibernate.annotations.Index;
+import jakarta.persistence.Index;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -6,10 +8,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "Inventory") // Assuming the table name is 'inventory'
+@Table(name = "Inventory",
+indexes = {
+    @Index (name = "carType_index", columnList = "carType"),
+    @Index (name = "currentBranchID_index", columnList = "currentBranchID"),
+    @Index (name = "model_index", columnList = "model"),
+    @Index (name = "make_index", columnList = "make"),
+}) // Assuming the table name is 'inventory'
 public class Inventory {
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.SEQUENCE)
     @Column(name = "carID", unique = true, nullable = false)
     private Long carID; 
     @Column(name = "carType", nullable = false)

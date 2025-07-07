@@ -1,18 +1,16 @@
-# Initialize
 import asyncio
 import random
 import sys
 import CarRentzRestAPI as CarRentzRestAPI
-
 
 async def rentalReturn (rID, dur):
     await asyncio.sleep(dur)
     response = CarRentzRestAPI.returnARental(rID)    
     # print (f"Rental {rID} returned after {dur} days. Response: {response}")
 
-async def seeNCustomers (day, n, numberOfCustomers, minDaysForRental, maxDaysForRental):
+async def seeNCustomers (day, branch, rep, customerServedNumber, numberOfCustomers, minDaysForRental, maxDaysForRental):
     tasks = []
-    for c in range (n):
+    for c in range (customerServedNumber):
 
         thisAsyncIterationOfLoop = asyncio.get_running_loop()
 
@@ -22,13 +20,13 @@ async def seeNCustomers (day, n, numberOfCustomers, minDaysForRental, maxDaysFor
 
         # Are cars available of the requested type?
         availableCar = await thisAsyncIterationOfLoop.run_in_executor(None, CarRentzRestAPI.findAnAvailableCar, 
-                                                                      day, carType, rentalDuration, customerID, 1, 0.0104)
+                                                                      day, branch, carType, rentalDuration, customerID, rep, 0.0104)
         if availableCar is None:
             # print(f"No available cars of type {carType} for customer {customerID}.")
             continue
         # Excellent--car available--now rent it
-        carID = availableCar['carID']
-        response = await thisAsyncIterationOfLoop.run_in_executor(None, CarRentzRestAPI.rentACar, day, carType, carID, rentalDuration, customerID, 0.007)
+        
+        response = await thisAsyncIterationOfLoop.run_in_executor(None, CarRentzRestAPI.rentACar, day, branch, rep, availableCar, rentalDuration, customerID, 0.007)
         if response is None:
             # print(f"Failed to rent car of type {carType} for customer {customerID}.")
             continue
@@ -39,25 +37,25 @@ async def seeNCustomers (day, n, numberOfCustomers, minDaysForRental, maxDaysFor
 
     return tasks
 
-async def simulateCarRentz (numberOfDaysToSimulate, numberOfCustomers, minDaysForRental, maxDaysForRental):
+async def simulateCarRentzForOneDayOneBranchOneRep (day, branch, rep, numberOfCustomers, minDaysForRental, maxDaysForRental):
 
     allRentalEvents = []
-    for day in range(numberOfDaysToSimulate):
-        # All of the following, before the sleep for 2/3 of a second should only take 1/3 second.
-        # Morning
-        rentalEvents = await seeNCustomers (day, 5, numberOfCustomers, minDaysForRental, maxDaysForRental)
-        allRentalEvents += rentalEvents
-        # Mid-morning
-        rentalEvents = await seeNCustomers (day, 4, numberOfCustomers, minDaysForRental, maxDaysForRental)
-        allRentalEvents += rentalEvents
-        # Afternoon
-        rentalEvents = await seeNCustomers (day, 6, numberOfCustomers, minDaysForRental, maxDaysForRental)
-        allRentalEvents += rentalEvents
-        # Late afternoon
-        rentalEvents = await seeNCustomers (day, 4, numberOfCustomers, minDaysForRental, maxDaysForRental)
-        allRentalEvents += rentalEvents
 
-        await asyncio.sleep(0.67) # Only 8 hours of work a day
+    # All of the following, before the sleep for 2/3 of a second should only take 1/3 second.
+    # Morning
+    rentalEvents = await seeNCustomers (day, branch, rep, 5, numberOfCustomers, minDaysForRental, maxDaysForRental)
+    allRentalEvents += rentalEvents
+    # Mid-morning
+    rentalEvents = await seeNCustomers (day, branch, rep, 4, numberOfCustomers, minDaysForRental, maxDaysForRental)
+    allRentalEvents += rentalEvents
+    # Afternoon
+    rentalEvents = await seeNCustomers (day, branch, rep, 6, numberOfCustomers, minDaysForRental, maxDaysForRental)
+    allRentalEvents += rentalEvents
+    # Late afternoon
+    rentalEvents = await seeNCustomers (day, branch, rep, 4, numberOfCustomers, minDaysForRental, maxDaysForRental)
+    allRentalEvents += rentalEvents
+
+    await asyncio.sleep(0.67) # Only 8 hours of work a day
 
     return allRentalEvents
 
@@ -65,22 +63,40 @@ async def main ():
     mainBodyThread = asyncio.get_running_loop()
 
     numberOfCustomers      = int (sys.argv[1])
-    numberOfDaysToSimulate = int (sys.argv[2])
-    numberOfCars           = int (sys.argv[3]) # Total number of cars in the inventory
+    numberOfBranches       = int (sys.argv[2])
+    numberOfRepsPerBranch  = int (sys.argv[3])
+    numberOfDaysToSimulate = int (sys.argv[4])
+    numberOfCars           = int (sys.argv[5]) # Total number of cars in the inventory
+    minDaysForRental       = int (sys.argv[6])
+    maxDaysForRental       = int (sys.argv[7])
     if (numberOfCars != 0):
         numberOfSUVs           = random.randrange(1, numberOfCars // 3) # Number of SUVs in the inventory
         numberOfSedans         = random.randrange(1, numberOfCars // 3) # Number of Sedans in the inventory
         numberOfVans           = numberOfCars - (numberOfSUVs + numberOfSedans) # Number of Vans in the inventory
-    minDaysForRental    = 1
-    maxDaysForRental    = 25
+    
     # Initialize the CarRentzRestAPI with the number of cars in the inventory but only if numberOfCars!=0
-    if (numberOfCars != 0):
-        await mainBodyThread.run_in_executor(None, CarRentzRestAPI.initializeInventory, numberOfSUVs, numberOfSedans, numberOfVans)
+    if (numberOfCars != 0): # This simulation will create the Inventory. If numberOfCars is 0, then the Inventory will not be created by this simulation.
+        await mainBodyThread.run_in_executor(None, CarRentzRestAPI.initializeInventory, numberOfBranches, numberOfSUVs, numberOfSedans, numberOfVans)
 
-    allTasksFromSimulation = await simulateCarRentz (numberOfDaysToSimulate, numberOfCustomers, minDaysForRental, maxDaysForRental)
-    await asyncio.gather (*allTasksFromSimulation)
-    if (numberOfCars != 0):
-        await mainBodyThread.run_in_executor(None, CarRentzRestAPI.deleteInventory)
+    tasksFromAllDaysAllBranchesAndReps = []
+
+    for day in range (numberOfDaysToSimulate):
+        tasksFromAllBranchesAndRepsToday = []
+        for branch in range (numberOfBranches):
+            tasksFromAllRepsInBranch = []
+            for rep in range (numberOfRepsPerBranch):
+                repID = (branch * numberOfRepsPerBranch) + rep
+                # tasksFromRepInBranch = await simulateCarRentz (numberOfDaysToSimulate, numberOfCustomers, minDaysForRental, maxDaysForRental) #####
+                tasksFromRepInBranch = await simulateCarRentzForOneDayOneBranchOneRep (day, branch+1, repID, numberOfCustomers, minDaysForRental, maxDaysForRental)
+                tasksFromAllRepsInBranch += tasksFromRepInBranch
+            tasksFromAllBranchesAndRepsToday += tasksFromAllRepsInBranch
+        tasksFromAllDaysAllBranchesAndReps += tasksFromAllBranchesAndRepsToday
+        
+    await asyncio.gather (*tasksFromAllDaysAllBranchesAndReps)
+
+    # Don't delete the inventory
+    #if (numberOfCars != 0):
+    #    await mainBodyThread.run_in_executor(None, CarRentzRestAPI.deleteInventory)
 
 if __name__ == "__main__":
     asyncio.run(main())

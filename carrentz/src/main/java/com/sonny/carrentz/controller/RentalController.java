@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sonny.carrentz.model.Rental;
@@ -42,25 +43,27 @@ public class RentalController {
         this.invoicesRepository = invoicesRepository;
     }
 
-    @GetMapping("/availableByCarType/{carType}")
-    public ResponseEntity<Rental> getAvailableRentalByCarType(@PathVariable String carType) {
+    @GetMapping("/availableByCarType")
+    public ResponseEntity<Rental> getAvailableRentalByCarType(@RequestParam ("carType") String carType, 
+                @RequestParam ("branchID") Long branchID) {
         Rental rental = new Rental();
-        //System.out.println("Fetching available rental for car type: " + carType);
-        List<Inventory> availableCars = inventoryRepository.findByCarType(carType);
+        // System.out.println("Fetching available rental for car type: " + carType + " in  branch ID: " + branchID);
+        List<Inventory> availableCars = inventoryRepository.findByCarTypeAndBranch(carType, branchID);
         if (availableCars.isEmpty()) {
-            //System.out.println("No available rentals found for car type: " + carType);
+            // System.out.println("No available rentals found for car type: " + carType);
             return ResponseEntity.notFound().build();
         }
-        //System.out.println("Available rentals found for car type: " + carType);
+        // System.out.println("Available rentals found for car type: " + carType);
         // Assuming you want to return the first available rental
         Inventory car = availableCars.get(0);
         rental.setCarID(car.getCarID());
+        rental.setRentalBranchID(branchID); // Assuming the rental branch is the same as the branch where the car is available
         rental.setCarType(car.getCarType());
         rental.setDuration(1); // Default duration of 1 day
-        rental.setRentalDate(LocalDateTime.now());
-        rental.setReturnDate(LocalDateTime.now().plusDays(rental.getDuration()));
+        rental.setRentalDate(LocalDateTime.now()); // Will be filled in later
+        rental.setReturnDate(LocalDateTime.now()); // Will be filled in later
         rental.setCustomerID(1L); // Placeholder for customer ID
-        rental.setExpectedCharges(0.0f); // Default expected charges
+        rental.setExpectedCharges(car.getPricePerDay()); // Default expected charges
         rental.setActualCharges(0.0f); // Default actual charges
         //System.out.println("Rental created: " + rental);
         return ResponseEntity.ok(rental);
@@ -75,9 +78,9 @@ public class RentalController {
     @PostMapping
     public ResponseEntity<Rental> createRental(@RequestBody Rental rental) {
         Inventory car = inventoryRepository.findByCarID(rental.getCarID());
-        //System.out.println("Creating rental: " + rental);
-               
+        rental.setReturnBranchID(rental.getRentalBranchID()); // Assuming return branch is not set at creation
         Rental savedRental = rentalRepository.save (rental);
+
 
         // important: Update the car's availability status
         car.setAvailable(false); // Mark the car as not available
@@ -91,7 +94,7 @@ public class RentalController {
         // System.out.println("Creating unavailable rental: " + rental);
         // Create a RentalsUnavailable record
         RentalsUnavailable rentalsUnavailable = new RentalsUnavailable (null, rA.getCarType(),
-         rA.getRentalDate(), rA.getDuration(), rA.getCustomerID(), rA.getRepID(), "No cars available of this type");
+         rA.getRentalDate(), rA.getDuration(), rA.getCustomerID(), rA.getRepID(), rA.getBranchID(), "No cars available of this type");
         rentalsUnavailableRepository.save(rentalsUnavailable);
         
         // Return a 200 OK response

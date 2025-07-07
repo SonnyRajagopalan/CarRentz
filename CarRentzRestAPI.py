@@ -7,15 +7,16 @@ from datetime import datetime, timedelta
 
 inventoryUrl = "http://localhost:8080/inventory"
 rentalsUrl = "http://localhost:8080/rentals"
-availableCarsUrl = "http://localhost:8080/rentals/availableByCarType/"
+availableCarsUrl = "http://localhost:8080/rentals/availableByCarType"
 
-def populateInventoryWithOneTypeOfCar (carType, number):
+def populateInventoryWithOneTypeOfCar (numberOfBranches, carType, number):
     url = inventoryUrl
 
     for i in range(number):
         color = random.choice (['Parrot Red', 'Blue Agate', 'Black', 'White', 'Burgundy', 'Steelblue', 'Green'])
         make = random.choice (['Toyota', 'Honda', 'Ford', 'Chevrolet', 'Nissan'])
         model = random.choice (['RAV4', 'CR-V', 'Escape', 'Equinox', 'Rogue'])
+        currentBranchID = random.randint(1, numberOfBranches)
         milesDriven = random.randint(0, 10000)
         pricePerDay = random.randint(25, 50)
         year = random.randint(2022, 2025)
@@ -25,6 +26,7 @@ def populateInventoryWithOneTypeOfCar (carType, number):
             "color": color,
             "make": make,
             "model": model,
+            "currentBranchID": currentBranchID,
             "milesDriven": milesDriven,
             "pricePerDay": pricePerDay,
             "year": year
@@ -37,11 +39,11 @@ def populateInventoryWithOneTypeOfCar (carType, number):
         else:
             print("Failed to initialize inventory")
 
-def initializeInventory (numberOfSUVs, numberOfSedans, numberOfVans):
+def initializeInventory (numberOfBranches, numberOfSUVs, numberOfSedans, numberOfVans):
     
-    populateInventoryWithOneTypeOfCar("SUV", numberOfSUVs)
-    populateInventoryWithOneTypeOfCar("Sedan", numberOfSedans)
-    populateInventoryWithOneTypeOfCar("Van", numberOfVans)
+    populateInventoryWithOneTypeOfCar(numberOfBranches, "SUV", numberOfSUVs)
+    populateInventoryWithOneTypeOfCar(numberOfBranches, "Sedan", numberOfSedans)
+    populateInventoryWithOneTypeOfCar(numberOfBranches, "Van", numberOfVans)
 
 def makeRequest (url, method, data=None):
     headers = { "Content-Type": "application/json" }
@@ -55,55 +57,73 @@ def makeRequest (url, method, data=None):
         # print(f"Error: {response.status_code} GETting URL {url}")
         return None
 
-def findAnAvailableCar (day, carType, duration, customerID, repID, delay=0):
-    url = availableCarsUrl + carType
+def findAnAvailableCar (day, branch, carType, duration, customerID, repID, delay=0):
+    url = availableCarsUrl
+    
+    params = {
+        "branchID": branch,  # Assuming a fixed branch ID for simplicity
+        "carType": carType
+    }
 
     time.sleep (delay)
-    response = makeRequest (url, "GET")
-    if response is not None and len(response) > 0:
-        return response  # Return the first available car
+    response = requests.get (url, params=params)
+
+    # print (f"Response = {response.json()}")
+    if response.status_code == 200 and response.json():
+        return response.json()  # Return the first available car
     else:
-        # print("No cars available of type:", carType)
         # Push to RentalsUnavailable
         url = "http://localhost:8080/rentals/unavailable"
         data = {
             "carType": carType,
-            "duration": 0,  # No specific car ID since none is available
+            "duration": duration,  # No specific car ID since none is available
             "rentalDate": (datetime.now()+timedelta(days=day)).isoformat(),
-            "customerID": 1,  # Assuming a fixed customer ID for simplicity
-            "repID": 1,  # Assuming a fixed representative ID for simplicity
+            "customerID": customerID,  # Assuming a fixed customer ID for simplicity
+            "repID": repID,  # Assuming a fixed representative ID for simplicity
+            "branchID": branch,  # Assuming a fixed branch ID for simplicity
             "reason": "No cars available of this type"
         }
+        # print (f"Creating RentalUnavailable for carType {carType} for customer {customerID} at branch {branch} for duration {duration} days")
         response = requests.post(url, json=data)
         if response.status_code == 200:
-            print("RentalUnavailable created successfully:", response)
+            # print("RentalUnavailable created successfully:", response)
             return None
         else:
             print(f"Failed to create RentalUnavailable: {response.status_code} - {response.text}")
         return None
 
-def rentACar (day, carType, carID, duration, customerID, delay=0):
+def rentACar (day, branch, rep, car, duration, customerID, delay=0):
     url = rentalsUrl
     time.sleep (delay)
     start = datetime.now() + timedelta (days=day)
     end = start + timedelta (days=duration)
+    carID = car ['carID']
+    expectedCharges = car ['expectedCharges'] * duration
+    actualCharges = expectedCharges # Assuming actual charges are the same as expected for simplicity
+    rentalBranchID = car ['rentalBranchID']
+    repID = rep
+    carType = car ['carType']
+
     data = {
         "carType": carType,
         "carID": carID,
-        "repID": 1, # Assuming a fixed representative ID for simplicity
-        "branchID": 1, # Assuming a fixed branch ID for simplicity
+        "repID": repID, # Assuming a fixed representative ID for simplicity
+        "rentalBranchID": rentalBranchID, # Assuming a fixed branch ID for simplicity
         "duration": duration,
         "rentalDate": start.isoformat(),
         "returnDate": end.isoformat(),
-        "expectedCharges": day,
+        "expectedCharges": expectedCharges,
+        "actualCharges": actualCharges,
         "customerID": customerID
     }
     response = requests.post (url, json=data)
+    #print (response.status_code, response.text)
+    #print (f"Sending rental request {data} to URL {url}")
     if response.status_code == 200:
         # print("Rental created successfully:", response)
         return response.json()
     else:
-        print(f"Failed to create rental {data}")
+        print(f"Failed to create rental {data} for response: {response.status_code} - {response.text} at URL {response.url}")
 
     
 

@@ -22,9 +22,11 @@ public class RentalsUnavailable {
     @Column(name = "duration", nullable = false)
     private int duration; // Duration of unavailability in days
     @Column(name = "customerID", nullable = false)
-    private String customerID;
+    private Long customerID;
     @Column(name = "repID", nullable = false)
-    private String repID; // Representative ID who had to tell the customer about the unavailability
+    private Long repID; // Representative ID who had to tell the customer about the unavailability
+    @Column(name = "branchID", nullable = false)
+    private Long branchID;
     @Column(name = "reason")
     private String reason; // Reason for unavailability
 
@@ -33,13 +35,14 @@ public class RentalsUnavailable {
     }
 
     public RentalsUnavailable(Long unavailableID, String carType, LocalDateTime rentalDate,
-            int duration, String customerID, String repID, String reason) {
+            int duration, Long customerID, Long repID, Long branchID, String reason) {
         this.unavailableID = unavailableID;
         this.carType = carType;
         this.rentalDate = rentalDate;
         this.duration = duration;
         this.customerID = customerID;
         this.repID = repID;
+        this.branchID = branchID;
         this.reason = reason;
     }
 
@@ -75,20 +78,28 @@ public class RentalsUnavailable {
         this.duration = duration;
     }
 
-    public String getCustomerID() {
+    public Long getCustomerID() {
         return customerID;
     }
 
-    public void setCustomerID(String customerID) {
+    public void setCustomerID(Long customerID) {
         this.customerID = customerID;
     }
 
-    public String getRepID() {
+    public Long getRepID() {
         return repID;
     }
 
-    public void setRepID(String repID) {
+    public void setRepID(Long repID) {
         this.repID = repID;
+    }
+
+    public Long getBranchID() {
+        return branchID;
+    }
+
+    public void setBranchID(Long branchID) {
+        this.branchID = branchID;
     }
 
     public String getReason() {
