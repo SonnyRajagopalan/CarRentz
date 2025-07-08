@@ -1,4 +1,5 @@
 import requests
+from http import HTTPStatus
 import json
 import asyncio
 import random
@@ -33,11 +34,11 @@ def populateInventoryWithOneTypeOfCar (numberOfBranches, carType, number):
         }
 
         response = requests.post(url, json=data)
-        if response is not None:
+        if response.status_code == HTTPStatus.CREATED:
             # print("Inventory initialized successfully:", response)
             continue
         else:
-            print("Failed to initialize inventory")
+            print(f"Failed to initialize inventory {response.status_code}, {HTTPStatus.CREATED} - {response.text} for carType {carType} at branch {currentBranchID}")
 
 def initializeInventory (numberOfBranches, numberOfSUVs, numberOfSedans, numberOfVans):
     
@@ -51,7 +52,7 @@ def makeRequest (url, method, data=None):
         headers["Content-Length"] = str(len(data))
     response = requests.request(method, url, headers=headers, json=data)
 
-    if response.status_code == 200:
+    if response.status_code == HTTPStatus.OK or response.status_code == HTTPStatus.CREATED:
         return response.json()
     else:
         # print(f"Error: {response.status_code} GETting URL {url}")
@@ -69,7 +70,7 @@ def findAnAvailableCar (day, branch, carType, duration, customerID, repID, delay
     response = requests.get (url, params=params)
 
     # print (f"Response = {response.json()}")
-    if response.status_code == 200 and response.json():
+    if response.status_code == HTTPStatus.OK:
         return response.json()  # Return the first available car
     else:
         # Push to RentalsUnavailable
@@ -85,7 +86,7 @@ def findAnAvailableCar (day, branch, carType, duration, customerID, repID, delay
         }
         # print (f"Creating RentalUnavailable for carType {carType} for customer {customerID} at branch {branch} for duration {duration} days")
         response = requests.post(url, json=data)
-        if response.status_code == 200:
+        if response.status_code == HTTPStatus.CREATED:
             # print("RentalUnavailable created successfully:", response)
             return None
         else:
@@ -119,7 +120,7 @@ def rentACar (day, branch, rep, car, duration, customerID, delay=0):
     response = requests.post (url, json=data)
     #print (response.status_code, response.text)
     #print (f"Sending rental request {data} to URL {url}")
-    if response.status_code == 200:
+    if response.status_code == HTTPStatus.CREATED:
         # print("Rental created successfully:", response)
         return response.json()
     else:
@@ -132,7 +133,8 @@ def returnARental (rentalID, delay=0):
     time.sleep (delay)
     # print ("Returning rental with ID:", rentalID, "using URL:", url)
     response = requests.delete(url)
-    if response is not None:
+    print (f"Response = {response.status_code}, {HTTPStatus.NOT_FOUND} {response.text}")
+    if response.status_code == HTTPStatus.NOT_FOUND:
         # print("\tRental returned successfully:", response)
         return response
     else:
@@ -143,7 +145,7 @@ def returnARental (rentalID, delay=0):
 def deleteInventory ():
     url = inventoryUrl
     response = requests.delete(url)
-    if response.status_code == 200:
+    if response.status_code == HTTPStatus.NO_CONTENT:
         # print("Inventory deleted successfully")
         return response
     else:

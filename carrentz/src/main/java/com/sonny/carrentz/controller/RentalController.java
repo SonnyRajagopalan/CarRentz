@@ -1,6 +1,7 @@
 package com.sonny.carrentz.controller;
 
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,7 +66,7 @@ public class RentalController {
         rental.setCustomerID(1L); // Placeholder for customer ID
         rental.setExpectedCharges(car.getPricePerDay()); // Default expected charges
         rental.setActualCharges(0.0f); // Default actual charges
-        //System.out.println("Rental created: " + rental);
+
         return ResponseEntity.ok(rental);
     }
 
@@ -86,7 +87,7 @@ public class RentalController {
         car.setAvailable(false); // Mark the car as not available
         inventoryRepository.save(car); // Save the updated car status
         // System.out.println("Rental created successfully: " + savedRental);
-        return ResponseEntity.ok(savedRental);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedRental);
     }
 
     @PostMapping("/unavailable")
@@ -124,6 +125,6 @@ public class RentalController {
         // Don't delete the rental record
         //rentalRepository.delete(rental); // Delete the rental record
         // System.out.println("Rental returned successfully: " + rentalID);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.notFound().build();
     }
 }
