@@ -98,8 +98,7 @@ public class RentalController {
          rA.getRentalDate(), rA.getDuration(), rA.getCustomerID(), rA.getRepID(), rA.getBranchID(), "No cars available of this type");
         rentalsUnavailableRepository.save(rentalsUnavailable);
         
-        // Return a 200 OK response
-        return ResponseEntity.ok().build();
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping("/{rentalID}")

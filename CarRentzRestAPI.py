@@ -17,7 +17,7 @@ def populateInventoryWithOneTypeOfCar (numberOfBranches, carType, number):
         color = random.choice (['Parrot Red', 'Blue Agate', 'Black', 'White', 'Burgundy', 'Steelblue', 'Green'])
         make = random.choice (['Toyota', 'Honda', 'Ford', 'Chevrolet', 'Nissan'])
         model = random.choice (['RAV4', 'CR-V', 'Escape', 'Equinox', 'Rogue'])
-        currentBranchID = random.randint(1, numberOfBranches)
+        currentBranchID = random.randint(0, numberOfBranches-1) # Branch IDs are 0-indexed
         milesDriven = random.randint(0, 10000)
         pricePerDay = random.randint(25, 50)
         year = random.randint(2022, 2025)
@@ -133,7 +133,7 @@ def returnARental (rentalID, delay=0):
     time.sleep (delay)
     # print ("Returning rental with ID:", rentalID, "using URL:", url)
     response = requests.delete(url)
-    print (f"Response = {response.status_code}, {HTTPStatus.NOT_FOUND} {response.text}")
+    #print (f"Response = {response.status_code}, {HTTPStatus.NOT_FOUND} {response.text}")
     if response.status_code == HTTPStatus.NOT_FOUND:
         # print("\tRental returned successfully:", response)
         return response

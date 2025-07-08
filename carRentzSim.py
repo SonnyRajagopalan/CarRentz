@@ -1,7 +1,24 @@
 import asyncio
 import random
+import datetime
 import sys
 import CarRentzRestAPI as CarRentzRestAPI
+import argparse
+random.seed(datetime.datetime.now().microsecond)
+
+parser = argparse.ArgumentParser(description="Simulate a car rental system with multiple branches and representatives.")
+
+parser.add_argument("--numberOfCustomers", type=int, default=10000000, help="Total number of customers in the simulation (default is 10 million)")
+parser.add_argument("--numberOfBranches", type=int, default=2800, help="Total number of branches in the simulation (default is 2800)")
+parser.add_argument("--numberOfRepsPerBranch", type=int, default=5, help="Number of representatives per branch (default is 5)")
+parser.add_argument("--numberOfDaysToSimulate", type=int, default=10, help="Number of days to simulate (default is 10)")
+parser.add_argument("--numberOfBranchesToSimulate", type=int, default=5, help="Number of branches to simulate (not the total number of branches in the inventory) (default is 5). ")
+parser.add_argument("--numberOfCars", type=int, default=450000, help="Total number of cars in the inventory. If this is non-zero, the inventory will be initialized with random cars. If this is zero, the inventory will not be initialized. (default is 450000)")
+parser.add_argument("--minDaysForRental", type=int, default=1, help="Minimum number of days for a rental (default is 1)")
+parser.add_argument("--maxDaysForRental", type=int, default=25, help="Maximum number of days for a rental (default is 25)")
+
+args = parser.parse_args()
+
 
 async def rentalReturn (rID, dur):
     await asyncio.sleep(dur)
@@ -62,32 +79,29 @@ async def simulateCarRentzForOneDayOneBranchOneRep (day, branch, rep, numberOfCu
 async def main ():
     mainBodyThread = asyncio.get_running_loop()
 
-    numberOfCustomers      = int (sys.argv[1])
-    numberOfBranches       = int (sys.argv[2])
-    numberOfRepsPerBranch  = int (sys.argv[3])
-    numberOfDaysToSimulate = int (sys.argv[4])
-    numberOfCars           = int (sys.argv[5]) # Total number of cars in the inventory
-    minDaysForRental       = int (sys.argv[6])
-    maxDaysForRental       = int (sys.argv[7])
-    if (numberOfCars != 0):
-        numberOfSUVs           = random.randrange(1, numberOfCars // 3) # Number of SUVs in the inventory
-        numberOfSedans         = random.randrange(1, numberOfCars // 3) # Number of Sedans in the inventory
-        numberOfVans           = numberOfCars - (numberOfSUVs + numberOfSedans) # Number of Vans in the inventory
-    
-    # Initialize the CarRentzRestAPI with the number of cars in the inventory but only if numberOfCars!=0
-    if (numberOfCars != 0): # This simulation will create the Inventory. If numberOfCars is 0, then the Inventory will not be created by this simulation.
-        await mainBodyThread.run_in_executor(None, CarRentzRestAPI.initializeInventory, numberOfBranches, numberOfSUVs, numberOfSedans, numberOfVans)
+    if (args.numberOfCars != 0):
+        numberOfSUVs           = random.randrange(1, args.numberOfCars // 3) # Number of SUVs in the inventory
+        numberOfSedans         = random.randrange(1, args.numberOfCars // 3) # Number of Sedans in the inventory
+        numberOfVans           = args.numberOfCars - (numberOfSUVs + numberOfSedans) # Number of Vans in the inventory
+        # Initialize the CarRentzRestAPI with the number of cars in the inventory but only if numberOfCars!=0
+        await mainBodyThread.run_in_executor(None, CarRentzRestAPI.initializeInventory, 
+                                             args.numberOfBranches, numberOfSUVs, numberOfSedans, numberOfVans)
 
     tasksFromAllDaysAllBranchesAndReps = []
 
-    for day in range (numberOfDaysToSimulate):
+    for day in range (args.numberOfDaysToSimulate):
         tasksFromAllBranchesAndRepsToday = []
-        for branch in range (numberOfBranches):
+        for branch in random.sample(range(args.numberOfBranches), args.numberOfBranchesToSimulate): 
+                                                        # branches = random.sample(range(numberOfBranches), numberOfBranchesToSimulate)
+                                                        # OR
+                                                        # branches = range(numberOfBranchesToSimulate)
             tasksFromAllRepsInBranch = []
-            for rep in range (numberOfRepsPerBranch):
-                repID = (branch * numberOfRepsPerBranch) + rep
-                # tasksFromRepInBranch = await simulateCarRentz (numberOfDaysToSimulate, numberOfCustomers, minDaysForRental, maxDaysForRental) #####
-                tasksFromRepInBranch = await simulateCarRentzForOneDayOneBranchOneRep (day, branch+1, repID, numberOfCustomers, minDaysForRental, maxDaysForRental)
+            for rep in range (args.numberOfRepsPerBranch):
+                repID = (branch * args.numberOfRepsPerBranch) + rep                
+                tasksFromRepInBranch = await simulateCarRentzForOneDayOneBranchOneRep (day, branch, repID, 
+                                                                                       args.numberOfCustomers, 
+                                                                                       args.minDaysForRental,
+                                                                                       args.maxDaysForRental)
                 tasksFromAllRepsInBranch += tasksFromRepInBranch
             tasksFromAllBranchesAndRepsToday += tasksFromAllRepsInBranch
         tasksFromAllDaysAllBranchesAndReps += tasksFromAllBranchesAndRepsToday

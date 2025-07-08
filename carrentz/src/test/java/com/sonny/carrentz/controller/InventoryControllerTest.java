@@ -11,27 +11,38 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 
-
-
-
 @SpringBootTest
 @AutoConfigureMockMvc
 public class InventoryControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
     @Test
-    public void testInventoryAdd () throws Exception {
+    public void testInventoryAddCar12345 () throws Exception {
         mockMvc.perform(post("/inventory")
                 .param("carID", "12345")
                 .param("carType", "SUV")
-                .param("currentBranchID", "2800")
+                .param("currentBranchID", "5000")
                 .param("available", "true"))
                 .andExpect(status().isCreated())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.carID").value(12345))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.carType").value("SUV"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.currentBranchID").value(2800))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.currentBranchID").value(5000))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.available").value(true));
     }
+
+    @Test
+    public void testInventoryAddCar54321 () throws Exception {
+        mockMvc.perform(post("/inventory")
+                .param("carID", "54321")
+                .param("carType", "Van")
+                .param("currentBranchID", "5000")
+                .param("available", "true"))
+                .andExpect(status().isCreated())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.carID").value(54321))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.carType").value("Van"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.currentBranchID").value(5000))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.available").value(true));
+        System.out.println ("Car54321 test");
+    }   
 }
