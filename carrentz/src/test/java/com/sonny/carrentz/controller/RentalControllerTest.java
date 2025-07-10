@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -23,10 +24,11 @@ public class RentalControllerTest {
     private MockMvc mockMvc;
     private int carID1 = 0;
     private int carID2 = 0;
+    private int carID3 = 0;
 
     @Test
     @Order (1)
-    public void addCar1SUV() throws Exception {
+    public void addAnSUV() throws Exception {
         String car1Json = "{"
                 + "\"carID\": null,"
                 + "\"available\": true,"
@@ -50,7 +52,7 @@ public class RentalControllerTest {
 
     @Test
     @Order(2)
-    public void addCar2Van() throws Exception {
+    public void addAVan() throws Exception {
         String car2Json = "{"
                 + "\"carID\": null,"
                 + "\"available\": true,"
@@ -71,17 +73,40 @@ public class RentalControllerTest {
         this.carID2 = JsonPath.read(car2, "$.carID");
     }
 
-    // @Test
-    // @Order(3)
-    // public void testGetAvailableRentalByCarTypeSUV() throws Exception {
-    //     this.mockMvc.perform(get("/rentals/availableByCarType?carType=SUV&branchID=5000"))
-    //             .andExpect(status().isOk()).andExpect(jsonPath("$.carType").value("SUV"))
-    //             .andExpect(jsonPath("$.rentalBranchID").value(5000))
-    //             .andExpect(jsonPath("$.duration").value(1));
-    // }
+    @Test
+    @Order(3)
+    public void addASedan() throws Exception {
+        String car3Json = "{"
+                + "\"carID\": null,"
+                + "\"available\": true,"
+                + "\"carType\": \"Sedan\","
+                + "\"color\": \"BURGUNDY\","
+                + "\"currentBranchID\": 5000,"
+                + "\"make\": \"Subaru-made from car3Json\","
+                + "\"milesDriven\": 42,"
+                + "\"model\": \"Impreza\","
+                + "\"pricePerDay\": 45.0,"
+                + "\"year\": 2025"
+                + "}";
+
+        MvcResult response = this.mockMvc.perform(post("/inventory")
+                .contentType("application/json").content(car3Json))
+                .andExpect(status().isCreated()).andReturn();
+        String car3 = response.getResponse().getContentAsString();
+        this.carID3 = JsonPath.read(car3, "$.carID");
+    }
 
     @Test
     @Order(4)
+    public void testGetAvailableRentalByCarTypeSUV() throws Exception {
+        this.mockMvc.perform(get("/rentals/availableByCarType?carType=SUV&branchID=5000"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.carType").value("SUV"))
+                .andExpect(jsonPath("$.rentalBranchID").value(5000))
+                .andExpect(jsonPath("$.duration").value(1));
+    }
+
+    @Test
+    @Order(5)
     public void testGetAvailableRentalByCarTypeVan() throws Exception {
         this.mockMvc.perform(get("/rentals/availableByCarType?carType=Van&branchID=5000"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.carType").value("Van"))
@@ -90,12 +115,22 @@ public class RentalControllerTest {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
+    public void testGetAvailableRentalByCarTypeSedan() throws Exception {
+        this.mockMvc.perform(get("/rentals/availableByCarType?carType=Sedan&branchID=5000"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.carType").value("Sedan"))
+                .andExpect(jsonPath("$.rentalBranchID").value(5000))
+                .andExpect(jsonPath("$.duration").value(1));
+    }
+
+    @Test
+    @Order(7)
     void testCreateRentalCheckRentalRepoInsertAndAvailableStatus() throws Exception {
 
         // First get an available car in branch 5000
-        MvcResult response = mockMvc.perform(get("/rentals/availableByCarType?carType=SUV&branchID=5000")
-                .accept(MediaType.APPLICATION_JSON)).andExpect(status().isOk()).andReturn();
+        MvcResult response = mockMvc.perform(get("/rentals/availableByCarType?carType=SUV&branchID=5000"))
+                        .andDo(MockMvcResultHandlers.print()) 
+                        .andExpect(status().isOk()).andReturn();
         String aCar = response.getResponse().getContentAsString();
         int carID = JsonPath.read(aCar, "$.carID");
 
@@ -114,16 +149,18 @@ public class RentalControllerTest {
                 + "}";
 
         this.mockMvc.perform(post("/rentals").contentType("application/json").content(rentalJson))
-                .andExpect(status().isCreated()); // Should actually be returning isCreated (201) if the rental is
-                                                  // created successfully
+                .andExpect(status().isCreated());
 
         this.mockMvc.perform(get("/inventory/" + carID)).andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.available").value(false));
     }
 
     @Test
-    void testReturnRental() {
-
+    @Order(8)
+    void testRentalOfUnavailableCarType() throws Exception {
+        // First get an available car in branch 5000
+        this.mockMvc.perform(get("/rentals/availableByCarType?carType=Convertible&branchID=5000"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

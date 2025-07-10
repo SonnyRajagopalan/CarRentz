@@ -14,6 +14,9 @@ import com.sonny.carrentz.model.Inventory;
 import com.sonny.carrentz.model.Invoices;
 import com.sonny.carrentz.repository.RentalRepository;
 import com.sonny.carrentz.repository.RentalsUnavailableRepository;
+
+import jakarta.transaction.Transactional;
+
 import com.sonny.carrentz.repository.InventoryRepository;
 import com.sonny.carrentz.repository.InvoicesRepository;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -77,6 +80,7 @@ public class RentalController {
     }
 
     @PostMapping
+    @Transactional
     public ResponseEntity<Rental> createRental(@RequestBody Rental rental) {
         Inventory car = inventoryRepository.findByCarID(rental.getCarID());
         rental.setReturnBranchID(rental.getRentalBranchID()); // Assuming return branch is not set at creation
@@ -102,6 +106,7 @@ public class RentalController {
     }
 
     @DeleteMapping("/{rentalID}")
+    @Transactional
     public ResponseEntity<Void> returnRental(@PathVariable Long rentalID) {
         // System.out.println("Returning rental with ID: " + rentalID);
         Rental rental = rentalRepository.findByRentalID(rentalID);

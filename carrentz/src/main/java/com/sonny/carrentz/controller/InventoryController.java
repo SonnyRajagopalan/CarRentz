@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.sonny.carrentz.model.Inventory;
 import com.sonny.carrentz.repository.InventoryRepository;
-import jakarta.persistence.criteria.CriteriaBuilder.In;
 
 @RestController
 @RequestMapping("/inventory")
@@ -31,7 +30,7 @@ public class InventoryController {
         }
         return ResponseEntity.ok(inventory);
     }
-    
+
     @PostMapping
     public ResponseEntity<Inventory> createInventory(@RequestBody Inventory inventory) {
         // This method can be used to add a new car to the inventory
